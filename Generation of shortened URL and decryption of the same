@@ -1,0 +1,54 @@
+public class Codec {
+    public static String BASE_URL = "http://tinyurl.com/"; // url pre-fix for tiny_url; 
+    /** We can either initiate a synchronized bihashmap via Maps.synchronizeMap(hashBiMap) using guava or create two backing hashmap to allow bi-direcitonal look up. 
+This isn't thread safe. Also, probably should put into some more permanent store than an in-memory cache that is subject to live cycle of JVM and we could lose everything. 
+But even then it's not too bad, as we could just re-generate;  but previous existing entries would disappear and not ideal for user experience unless we explicitly state TTL of the shortUrl.  
+At which point, we are probably better off want to use some CacheBuilder.newBuilder() 
+ or Caffeine.newBuilder() and set appropriate size, ttl..etc. 
+    **/
+    private static Map< String, String> longUrlToShortUrl = new HashMap<String, String>() ;
+    private static Map< String, String> shortUrlToLongUrl = new HashMap<String, String>() ;
+    private static String characterSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"; 
+   
+    // Encodes a URL to a shortened URL.
+    public String encode(String longUrl) {
+        String shortUrl = longUrlToShortUrlMap.get(longUrl); 
+        if (shortUrl == null)
+        {
+            shortUrl = generateNewShortUrl(longUrl);  
+            longUrlToShortUrl.put(longUrl, shortUrl); 
+            shortUrlToLongUrl.put(shortUrl, longUrl); 
+        }
+        return BASE_URL + shortUrl; 
+    }
+
+    // Decodes a shortened URL to its original URL.
+    public String decode(String shortUrl) {
+        //parse out BASE_URL;
+        shortUrl = shortUrl.replace(BASE_URL, "");
+        //probaby should add non-return cases here where look up fails.  
+        return shortUrlToLongUrl.get(shortUrl); 
+    }
+    
+    /**
+       Responsible for generating a short url
+       Different options here, we could use a LongAdder & just increment. 
+       We could use native string hashcode.   
+       Random generation of a string that is set length; 
+    */
+    public String generateNewShortUrl(String longUrl)
+    {
+        Random random = new Random();
+        int[] tenRandomNumbers = random.ints(10, 0, characterSet.length()).toArray();
+        StringBuilder sb = new StringBuilder(); 
+        for (int entry : tenRandomNumbers) 
+        {
+            sb.append(characterSet.charAt(entry));
+        }
+        return sb.toString(); 
+    }
+}
+
+// Your Codec object will be instantiated and called as such:
+// Codec codec = new Codec();
+// codec.decode(codec.encode(url));
