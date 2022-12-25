@@ -1,0 +1,130 @@
+import java.lang.*;
+import java.io.*;
+
+//Output sorted in UPPERCASE characters in lexicological order.
+//Ex: HiAll should come before HiBen
+//we should return not only words of the exact pattern, but words that *begin* with the pattern. 
+//So when we hit the end of the pattern, we should return an accumulation of all words in the subtree.
+//(This is the key concept used for URL suggester) 
+//Ex: 
+// ip: WelcomeGeneral WelcomeToGossipForGenerals GossipForGenerals , pattern: WTG
+// op: WelcomeToGossipForGenerals (WTGFG)
+
+// Print multiple words that start with the same pattern
+// ip: Hi Hello HelloWorld HiTech HiTechWorld HiTotal HiTotalMax  , pattern: HT
+// op: HiTech HiTotal HiTechCity HiTotalMax HiTechWorld 
+class Main {
+		public static void main (String[] args) throws IOException{
+	    BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+	    int t = Integer.parseInt(br.readLine());
+	    while(t-->0)
+	    {
+            int n = Integer.parseInt(br.readLine());
+	        String s[] = br.readLine().split(" ");
+	        String patt = br.readLine();
+	        CamelCasePattMatching(s,patt,n);
+	       
+	    }
+		}
+		//this is actually PASCAL BASED.
+		//Project : PASCAL based pattern matching using ADS Tries.
+		//camel case starts with small later , used in java
+		
+		static void CamelCasePattMatching(String s[],String patt,int n)
+		{
+		    root = new TrieNode(); // only once
+		    
+		    for(int i=0;i<s.length;i++)
+		    {
+		        insert(s[i]);
+		    }
+		    
+		    
+		    if(!search(patt)) //prints if found
+		        System.out.println("No match found");
+		    
+		    else
+		        System.out.println();  //In normal case we print the words and the move to next line
+		}
+		
+		static TrieNode root;
+		
+		static class TrieNode
+		{
+		    TrieNode children[] = new TrieNode[26]; //for 26 capital chars
+		    boolean isLeaf;
+		    List<String> word; //extra
+		    
+		    TrieNode() //intitializing everything we have declared through constructor
+		    {
+		      //for(int i=0;i<26;i++) 
+		      //  children[i] = null;     //IN JAVA NO NEED TO DO. but to make the project more scalable
+		        
+		      // isLeaf = false;
+		       word = new ArrayList<>();
+		    }
+		}
+		
+		
+		
+		static void insert(String word)
+		{
+		    TrieNode pCrawl = root; //like temp node
+		    
+		    for(int i=0;i<word.length();i++)
+		    {
+		        if(Character.isLowerCase(word.charAt(i)))
+		        continue;
+		        
+		        int index = word.charAt(i) - 'A';
+		        if(pCrawl.children[index] == null)
+		            pCrawl.children[index] = new TrieNode();
+		            
+		       pCrawl = pCrawl.children[index];
+		    }
+		    
+		    pCrawl.isLeaf = true;
+		    
+		    (pCrawl.word).add(word);
+		}
+		
+		static boolean search(String pattern)
+		{
+		    TrieNode pCrawl = root;
+		    
+		    for(int i=0;i<pattern.length();i++)
+		    {
+		        int index  = pattern.charAt(i) - 'A';
+		    
+		        if(pCrawl.children[index]==null)
+		            return false;
+		        
+		        pCrawl =pCrawl.children[index];
+		    
+		    }
+		    
+		    printAllWords(pCrawl);
+		    return true;
+		    
+		}
+		
+		static void printAllWords(TrieNode root) //pCrawl is passed as root.
+		{
+		    if(root.isLeaf)
+		    {
+		        for(String s : root.word) // if there are multiple occurences wit HT such as HiTech and HiTotal
+		        {
+		            System.out.print(s+" ");
+		        }
+		    }
+		    
+//If input is HT , and you want  to print not only HiTech but HiTechCity and others as well.
+//Otherwise no need to this below.
+		    for(int i=0;i<26;i++)    
+		    {
+		        
+		        if(root.children[i]!=null)
+		            printAllWords(root.children[i]);
+		    }
+		}
+}
